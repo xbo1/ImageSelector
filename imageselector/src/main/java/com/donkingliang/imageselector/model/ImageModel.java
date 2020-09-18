@@ -12,6 +12,8 @@ import android.provider.MediaStore;
 import com.donkingliang.imageselector.R;
 import com.donkingliang.imageselector.entry.Folder;
 import com.donkingliang.imageselector.entry.Image;
+import com.donkingliang.imageselector.entry.RequestConfig;
+import com.donkingliang.imageselector.utils.ImageSelector;
 import com.donkingliang.imageselector.utils.ImageUtil;
 import com.donkingliang.imageselector.utils.StringUtils;
 import com.donkingliang.imageselector.utils.UriUtils;
@@ -20,6 +22,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 
 import androidx.core.content.ContextCompat;
@@ -153,7 +156,15 @@ public class ImageModel {
      * @return
      */
     private static synchronized ArrayList<Image> loadImage(Context context) {
-
+        RequestConfig config = ImageSelector.requestConfig;
+        HashSet<String> filters = new HashSet<>();
+        if (config != null && config.filterMIMEs != null && ! config.filterMIMEs.isEmpty()) {
+            filters.addAll(config.filterMIMEs);
+        }
+        ArrayList<String> excludes = new ArrayList<>();
+        if (config != null && config.excludePaths != null && !config.excludePaths.isEmpty()) {
+            excludes.addAll(config.excludePaths);
+        }
         //扫描图片
         Uri mImageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         ContentResolver mContentResolver = context.getContentResolver();
@@ -178,6 +189,16 @@ public class ImageModel {
                 long id = mCursor.getLong(mCursor.getColumnIndex(MediaStore.Images.Media._ID));
                 String path = mCursor.getString(
                         mCursor.getColumnIndex(MediaStore.Images.Media.DATA));
+                boolean excluded = false;
+                for (String exclude : excludes) {
+                    if (path.startsWith(exclude)) {
+                        excluded = true;
+                        break;
+                    }
+                }
+                if (excluded) {
+                    continue;
+                }
                 //获取图片名称
                 String name = mCursor.getString(
                         mCursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
@@ -193,6 +214,10 @@ public class ImageModel {
                 String mimeType = mCursor.getString(
                         mCursor.getColumnIndex(MediaStore.Images.Media.MIME_TYPE));
 
+                //按类型排除文件
+                if (filters.contains(mimeType)) {
+                    continue;
+                }
                 //获取图片uri
                 Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon()
                         .appendPath(String.valueOf(id)).build();

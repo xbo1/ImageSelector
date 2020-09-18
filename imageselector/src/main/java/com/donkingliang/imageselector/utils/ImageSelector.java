@@ -44,6 +44,7 @@ public class ImageSelector {
 
     public static final int RESULT_CODE = 0x00000012;
 
+    public static RequestConfig requestConfig;
     /**
      * 预加载图片
      *
@@ -169,6 +170,58 @@ public class ImageSelector {
         }
 
         /**
+         * 过滤不想显示的图片格式
+         *
+         * @param mimes
+         */
+        public ImageSelectorBuilder setFilterMIMEs(ArrayList<String> mimes) {
+            if (mimes == null) {
+                return this;
+            }
+            config.filterMIMEs = mimes;
+            return this;
+        }
+        /**
+         * 过滤不想显示的图片格式,
+         *
+         * @param mime
+         */
+        public ImageSelectorBuilder setFilterMIME(String mime) {
+            if (mime == null || mime.isEmpty()) {
+                return this;
+            }
+            config.filterMIMEs = new ArrayList<>();
+            config.filterMIMEs.add(mime);
+            return this;
+        }
+
+        /**
+         * 过滤不想显示的图片目录(完整目录)
+         *
+         * @param paths
+         */
+        public ImageSelectorBuilder setExcludePaths(ArrayList<String> paths) {
+            if (paths == null) {
+                return this;
+            }
+            config.excludePaths = paths;
+            return this;
+        }
+        /**
+         * 过滤不想显示的图片格式,
+         *
+         * @param path
+         */
+        public ImageSelectorBuilder setExcludePath(String path) {
+            if (path == null || path.isEmpty()) {
+                return this;
+            }
+            config.excludePaths = new ArrayList<>();
+            config.excludePaths.add(path);
+            return this;
+        }
+
+        /**
          * 打开相册
          *
          * @param activity
@@ -180,6 +233,7 @@ public class ImageSelector {
             if (config.onlyTakePhoto) {
                 config.useCamera = true;
             }
+            requestConfig = config;
             if (config.isCrop) {
                 ClipImageActivity.openActivity(activity, requestCode, config);
             } else {
@@ -199,6 +253,7 @@ public class ImageSelector {
             if (config.onlyTakePhoto) {
                 config.useCamera = true;
             }
+            requestConfig = config;
             if (config.isCrop) {
                 ClipImageActivity.openActivity(fragment, requestCode, config);
             } else {
@@ -218,11 +273,16 @@ public class ImageSelector {
             if (config.onlyTakePhoto) {
                 config.useCamera = true;
             }
+            requestConfig = config;
             if (config.isCrop) {
                 ClipImageActivity.openActivity(fragment, requestCode, config);
             } else {
                 ImageSelectorActivity.openActivity(fragment, requestCode, config);
             }
+        }
+        public void preload(Context context) {
+            requestConfig = config;
+            ImageSelector.preload(context);
         }
     }
 

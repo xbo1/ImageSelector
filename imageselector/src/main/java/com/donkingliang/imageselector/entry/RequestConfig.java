@@ -22,6 +22,8 @@ public class RequestConfig implements Parcelable {
     public float cropRatio = 1.0f; // 图片剪切的宽高比，宽固定为手机屏幕的宽。
     public int requestCode;
 
+    public ArrayList<String> filterMIMEs;  //过滤不想显示的图片格式,
+    public ArrayList<String> excludePaths; //过滤不想显示的图片目录(完整目录)
 
     @Override
     public int describeContents() {
@@ -37,6 +39,8 @@ public class RequestConfig implements Parcelable {
         dest.writeByte(this.canPreview ? (byte) 1 : (byte) 0);
         dest.writeInt(this.maxSelectCount);
         dest.writeStringList(this.selected);
+        dest.writeStringList(this.filterMIMEs);
+        dest.writeStringList(this.excludePaths);
         dest.writeFloat(this.cropRatio);
         dest.writeInt(this.requestCode);
     }
@@ -52,6 +56,8 @@ public class RequestConfig implements Parcelable {
         this.canPreview = in.readByte() != 0;
         this.maxSelectCount = in.readInt();
         this.selected = in.createStringArrayList();
+        this.filterMIMEs = in.createStringArrayList();
+        this.excludePaths = in.createStringArrayList();
         this.cropRatio = in.readFloat();
         this.requestCode = in.readInt();
     }
